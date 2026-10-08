@@ -9,6 +9,16 @@ Standing instructions for Claude Code in this repository.
 
 Do not rely on memory of earlier sessions. These two files are the source of truth. If something you remember conflicts with them, the files win.
 
+## Start of every session
+
+Claude chat writes updates to `CLAUDE.md`, `docs/DESIGN.md` and `docs/PLAN.md` straight into this working tree, uncommitted. Before any other work:
+
+1. Run `git status`. If any of those three files changed and you did not change them, Claude chat did.
+2. Read the diff. Check that nothing you added earlier (checklists, decision log entries) was lost. Restore anything that was, and tell the user.
+3. Commit them on their own with the message "Docs from Claude chat: <one-line summary>", then carry on.
+
+Claude chat never writes any other file. If anything else changed unexpectedly, stop and tell the user.
+
 ## What this project is
 
 NPN (N-ought Provenance Network), git-native build. Independent nodes pull the same public data, sign what they observed and publish it to their own repos. Anyone can derive consensus from the signed observations. The network verifies provenance, not truth, and never interprets.
@@ -17,8 +27,13 @@ NPN (N-ought Provenance Network), git-native build. Independent nodes pull the s
 
 - **No inference, anywhere.** No scores, rankings, risk colours, prominence weighting, derived or inferred connections, or "significance" labels. Store and display only what a source declared and what nodes observed.
 - **No entity resolution beyond identifiers the source itself provides.** No fuzzy name matching, ever.
-- **Personal data, per `docs/DESIGN.md` section 8.** Only allowlisted fields about individuals are ever processed. Never publish addresses, dates of birth or Companies House personal codes. Never commit an individual's name to any git repo: current names are served only from the name store, and superseded names exist only as hashes. Never publish or archive raw responses of person records.
-- **Every transform is published.** Canonicalisation and schema mapping must be deterministic, documented in this repo, versioned, and keep the raw response alongside the transformed output.
+- **Personal data, per `docs/DESIGN.md` section 8.**
+  - Only allowlisted fields about individuals are ever processed. Never publish an individual's address, date of birth or Companies House personal code.
+  - Never write an individual's name, or any hash of it, to a log repo or data repo. Current names exist only in the name store, which is never committed and never archived.
+  - Raw responses of person records are not retained. Record their raw hash only.
+  - Company registered office addresses are published only as locality, postcode district and country, with the full address kept as a hash.
+- **Every transform is published.** Canonicalisation and schema mapping must be deterministic, documented in this repo, versioned, and keep the raw response alongside the transformed output, except raw responses of person records (see above).
+- **Never rewrite a log repo.** Data repos are rewritten only for a legal order, following `docs/DESIGN.md` section 8.
 - **Never commit secrets.** Private keys and API keys live only in CI secrets or on the operator's machine. Check the diff before every commit.
 - **One consensus library.** Nodes and the front end use the same shared library for canonicalisation, hashing, signature checks and consensus. Never duplicate that logic.
 - **Determinism.** The same input bytes must give the same hashes on any machine. Add a test whenever you touch canonicalisation, hashing, signing or consensus.
