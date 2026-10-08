@@ -28,7 +28,7 @@ Principles. Claude Code must ask, not decide.
 
 | Phase | What | Status |
 |---|---|---|
-| 0 | Repo setup and design review | Scaffold done; 0b (apply review outcomes) next |
+| 0 | Repo setup and design review | 0 and 0b done, CI green. 0b consistency check found open points; James to settle them in Claude chat before Phase 1 |
 | 1 | One node, one source, deterministic pulls (company profiles) | Not started |
 | 2 | Signing and manifest logs | Not started |
 | 3 | Four nodes, witnessing and consensus | Not started |
@@ -83,6 +83,17 @@ Read the new CLAUDE.md, docs/DESIGN.md and docs/PLAN.md I have just copied in. T
 - You have brought Claude Code's step 2 results back to Claude chat if anything is unresolved.
 
 **Model:** Opus (it is checking design consistency).
+
+**Status, 8 October 2026**
+
+- [x] New CLAUDE.md, DESIGN.md v2.1 and PLAN.md v2.1 copied in
+- [x] Phase 0 checklist recovered and merged above; Phase 0 decisions moved into the DESIGN.md decision log
+- [x] Consistency check of DESIGN.md v2.1 against the Phase 0 review delivered in the session
+- [x] LICENSE (Apache 2.0, unmodified text) and NOTICE ("Copyright 2026 N-ought")
+- [x] DATA-LICENCE.md (CC0 1.0 for network-generated records; source data under its own licence)
+- [x] `config/watchlist.json` (`version` 0, empty `entries`), checked by the layout test
+- [x] Committed as "Apply Phase 0 review outcomes" and pushed. CI green; GitHub detects the licence as Apache-2.0
+- [ ] James takes the open points from the consistency check to Claude chat
 
 ---
 
