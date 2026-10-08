@@ -35,7 +35,7 @@ Principles. Claude Code must ask, not decide.
 
 | Phase | What | Status |
 |---|---|---|
-| 0 | Repo setup and design review | Scaffold and 0b done; 0c next (v2.2 docs already in the clone, uncommitted) |
+| 0 | Repo setup and design review | 0, 0b and 0c done, CI green. 0c consistency check found open points, two of them blocking Phase 1; James to settle them in Claude chat |
 | 1 | One node, one source, deterministic pulls (company profiles) | Not started |
 | 2 | Signing and manifest logs | Not started |
 | 3 | Four nodes, witnessing and consensus | Not started |
@@ -96,10 +96,10 @@ Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. Claude chat has written v2.2 of
 
 **Status (Phase 0c)**
 
-- [ ] Claude chat's v2.2 docs reviewed and committed
-- [ ] Consistency check of DESIGN.md v2.2 against both reviews delivered
-- [ ] `config/adapters.json` added and checked by the layout test
-- [ ] Committed as "Apply second review outcomes" and pushed. CI green
+- [x] Claude chat's v2.2 docs reviewed and committed (nothing of Claude Code's lost; committed on their own as "Docs from Claude chat: v2.2 after second design review", per CLAUDE.md)
+- [x] Consistency check of DESIGN.md v2.2 against both reviews delivered
+- [x] `config/adapters.json` (`version` 0, empty `adapters` map) added and checked by the layout test
+- [x] Committed as "Apply second review outcomes" and pushed. CI green
 - [ ] James takes any open points from the consistency check to Claude chat
 
 **Done when**
