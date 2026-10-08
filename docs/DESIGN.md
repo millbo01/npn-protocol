@@ -276,3 +276,4 @@ Alternative if the default fails: the institution client pushes the identical si
 | 2026-10-08 | `package.json` is `private`, licence field `Apache-2.0` | Prevents accidental npm publishing; licence per D7 |
 | 2026-10-08 | LICENSE holds the unmodified Apache 2.0 text; the copyright line "Copyright 2026 N-ought" goes in NOTICE | Apache's recommended practice; keeps LICENSE recognisable to licence detection tools. Holder name chosen by James |
 | 2026-10-08 | `config/watchlist.json` starts as `{"version": 0, "entries": []}`; entry schema set in Phase 1 | Step 5 of Prompt 0b needs a placeholder; an integer version is the simplest value a manifest can record |
+| 2026-10-08 | `config/adapters.json` starts as `{"version": 0, "adapters": {}}`, a map from adapter name to pinned version | Same shape as the watchlist: an integer config version for manifests, plus one pin per adapter |

@@ -20,7 +20,7 @@ const folders = [
   '.github/workflows',
 ];
 
-const files = ['LICENSE', 'DATA-LICENCE.md', 'config/watchlist.json'];
+const files = ['LICENSE', 'DATA-LICENCE.md', 'config/watchlist.json', 'config/adapters.json'];
 
 test('repo layout matches DESIGN.md section 2', () => {
   for (const folder of folders) {
@@ -35,4 +35,11 @@ test('watchlist has a version and a list of entries', () => {
   const watchlist = JSON.parse(readFileSync(join(root, 'config/watchlist.json'), 'utf8'));
   assert.equal(typeof watchlist.version, 'number');
   assert.ok(Array.isArray(watchlist.entries));
+});
+
+test('adapters config has an integer version and a map of adapter versions', () => {
+  const adapters = JSON.parse(readFileSync(join(root, 'config/adapters.json'), 'utf8'));
+  assert.ok(Number.isInteger(adapters.version) && adapters.version >= 0);
+  assert.equal(typeof adapters.adapters, 'object');
+  assert.ok(adapters.adapters !== null && !Array.isArray(adapters.adapters));
 });
