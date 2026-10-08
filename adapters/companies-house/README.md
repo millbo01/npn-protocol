@@ -6,8 +6,7 @@ Adapter id `companies-house`, version **1**. Phase 1 scope: the company profile 
 |---|---|
 | `profile.js` | Raw response bytes to canonical record: allowlist, transforms, hashes. No Node imports, so the browser can rerun it |
 | `fetch.js` | API requests, request spacing, retries |
-| `round.js` | One round: fetch, process, write changed data, write the round record |
-| `run.js` | Command line entry used by the node workflow |
+| `collect.js` | One round's collection: fetch, process, write changed data, return manifest entries. `runner/round.js` turns them into a signed manifest |
 | `probe.js` | Live check of etag behaviour. Prints company numbers, etags and HTTP statuses only |
 
 ## Record, record id and version key
@@ -42,7 +41,7 @@ Known fields deliberately not published:
 
 | Field | Reason |
 |---|---|
-| `etag` | The version key. Recorded in the round record, not in the canonical record |
+| `etag` | The version key. Recorded in the manifest entry, not in the canonical record |
 | `links` | Navigation URLs derived from the company number |
 | `can_file` | State of the filing service, not a fact about the company |
 | `service_address` | Correspondence address of a registered overseas entity; may be a personal address |
@@ -70,7 +69,7 @@ Order matters: transform 3 must run before transform 5, or the hash would cover 
 ## Output
 
 - **Data branch:** `companies-house/company-profile/{company_number}.json`, the canonical bytes, written only when they change.
-- **Round record:** `log/rounds/{started_at}.json` on `main`, written every run, itself in RFC 8785 form. Per record: source, record id, version key, adapter version, canonical hash, raw hash, retrieval time. Per round: node id, protocol tag and commit, watchlist and adapters config versions, start and end times, and any per-record errors.
+- **Manifest entries:** per record: source, record id, version key, adapter version, canonical hash, raw hash, retrieval time. `runner/round.js` adds `first_seq` and writes the signed manifest to `log/manifests/` on `main` (DESIGN.md section 4). Phase 1 wrote unsigned round records to `log/rounds/` instead.
 
 ## Rate limit
 

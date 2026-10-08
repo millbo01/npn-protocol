@@ -37,7 +37,7 @@ Principles. Claude Code must ask, not decide.
 |---|---|---|
 | 0 | Repo setup and design review | Done. 0c review settled in Claude chat (DESIGN.md v2.3) |
 | 1 | Node 1, one source, deterministic pulls (company profiles) | Built and running daily on npn-node-1 (protocol v0.1.0). Open: etag change-on-change not yet observed; three points for James (see Phase 1 status) |
-| 2 | Signing and manifest logs | Not started |
+| 2 | Signing and manifest logs | Done. npn-node-1 publishes signed manifests, tlog-tiles and signed checkpoints daily (protocol v0.2.0); verified with stock OpenSSH and in a browser |
 | 3 | Four nodes, witnessing and consensus | Not started |
 | 4 | Officers, PSCs and the relational layer | Not started. Legal view before individual records go public |
 | 5 | Genesis front end | Not started |
@@ -209,6 +209,22 @@ Update docs/PLAN.md and the decision log, then tell me what to check, including 
 - No private key appears anywhere in the repo or CI logs.
 
 **Model:** Opus.
+
+**Status, 8 October 2026 (Phase 2)**
+
+- [x] Session start: no uncommitted changes from Claude chat; nothing to commit
+- [x] Step 1: SSH signatures verify with stock OpenSSH and in a browser. WebCrypto Ed25519 confirmed in Chromium 152 (RFC 8032 vector); `lib/sshsig.js` output is byte-identical to `ssh-keygen -Y sign`, accepted by `ssh-keygen -Y verify`, and the same file verifies `ssh-keygen` signatures in the browser. No alternative needed
+- [x] Signed round manifests per DESIGN.md section 4, with `first_seq` and an empty peer checkpoint list
+- [x] Manifest log in C2SP tlog-tiles under `log/` on `main`; signed C2SP checkpoints (signed note, plus an SSH signature of the text); `lib/` computes inclusion and consistency proofs from the tiles alone
+- [x] Namespaces `npn-manifest`, `npn-checkpoint`, `git`; signed commits configured in the node workflow
+- [x] Node 1 key generated on James's machine (`~/.ssh/npn-node-1_ed25519`), stored as `NODE_SIGNING_KEY`; fingerprint `SHA256:k1Lefkki5TqZwpW/X4uSB3lZsx9hekGgctM1fV5rKXE`
+- [x] `signers/genesis.json` (canonical) and generated `signers/genesis.allowed_signers`, with a test that fails if they disagree; npn-node-1 marked `independence: none`
+- [x] Verify functions in `lib/verify.js` and a command line in `runner/verify.js` (manifest, checkpoint, whole log), honouring retired keys and their sequence ranges
+- [x] 75 tests in CI, all passing, none skipped, including every test Prompt 2 lists
+- [x] Tagged `v0.2.0`; pin moved to it (adapters config version 2); node 1 workflow updated
+- [x] Two signed rounds on npn-node-1: manifests 0 and 1, checkpoint size 2. `ssh-keygen -Y verify` accepts both manifests and the checkpoint and rejects a one-byte change; git shows good `npn-node-1` signatures on the log commits; the whole log (signatures, root from tiles, inclusion, consistency of checkpoint 2 with 1) verifies in a browser from GitHub URLs
+- [x] No private key material in either repo's history or in the CI logs of the signed runs (searched for the OpenSSH private key marker)
+- [ ] Carried over from Phase 1: `has_super_secure_pscs` decision; CLAUDE.md raw-response wording; etag change-on-change observation
 
 ---
 
