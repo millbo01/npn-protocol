@@ -1,4 +1,3 @@
-[PLAN.md](https://github.com/user-attachments/files/33192416/PLAN.md)
 # NPN git-native build plan
 
 ## How to use this plan
@@ -26,7 +25,7 @@ Principles. Claude Code must ask, not decide.
 
 | Phase | What | Status |
 |---|---|---|
-| 0 | Repo setup and design review | Not started |
+| 0 | Repo setup and design review | Scaffold done, CI green. Waiting for James to take the design review to Claude chat |
 | 1 | One node, one source, deterministic pulls | Not started |
 | 2 | Signing | Not started |
 | 3 | Three nodes and consensus | Not started |
@@ -68,6 +67,26 @@ Then:
 - You have read Claude Code's design review and brought anything substantive back to Claude chat.
 
 **Model:** Opus (it is reviewing the design).
+
+**Status, 8 October 2026**
+
+- [x] `DESIGN.md` and `PLAN.md` moved from the repo root into `docs/`
+- [x] Folder skeleton from DESIGN.md section 2, with a README in each folder
+- [x] `package.json` (ES modules, no dependencies, no build step) and a layout test in `tests/`
+- [x] `.github/workflows/test.yml`: Node's built-in test runner on every push, Node 24
+- [x] Committed as "Scaffold protocol repo" and pushed. First CI run green
+- [x] Design review delivered in the session
+- [ ] James takes the design review to Claude chat and settles the substantive points
+- [ ] DESIGN.md updated with the outcome, and the decisions below added to its decision log
+
+Decisions made in Phase 0, to add to the DESIGN.md decision log (DESIGN.md was left unchanged on instruction):
+
+| Date | Decision | Reason |
+|---|---|---|
+| 2026-10-08 | `.gitattributes` forces LF line endings and marks `tests/fixtures/` as binary | Windows checkouts otherwise convert line endings, so the same file would hash differently on different machines |
+| 2026-10-08 | CI on Node 24 (current LTS), `package.json` declares Node 22 or later | Node 22 is the oldest maintained line with native glob support in `node --test` and WebCrypto Ed25519 |
+| 2026-10-08 | Test files are `tests/**/*.test.js` | Explicit pattern, so the runner does not pick up fixtures or `node-template/` files |
+| 2026-10-08 | `package.json` is `private` and has no licence field | Prevents accidental npm publishing. The licence is decision D7 |
 
 ---
 
