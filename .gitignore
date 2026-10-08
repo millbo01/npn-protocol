@@ -1,0 +1,8 @@
+node_modules/
+
+# Keys and secrets never belong in this repo.
+.env
+*.key
+*.pem
+id_ed25519*
+!*.pub

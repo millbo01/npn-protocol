@@ -1,0 +1,5 @@
+# Same bytes on every machine: hashes depend on it.
+* text=auto eol=lf
+
+# Raw source responses and fixtures are hashed byte for byte. Never convert them.
+tests/fixtures/** -text
