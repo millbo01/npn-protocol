@@ -1,0 +1,126 @@
+name: npn-node
+
+# One round per day at a fixed minute (06:17 UTC). Hosted CI may start late or skip a run;
+# DESIGN.md section 5 treats the resulting gaps as expected.
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: Run the etag probe instead of a round (prints company numbers, etags and HTTP statuses only)
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: npn-node
+  cancel-in-progress: false
+
+env:
+  PROTOCOL_REPO: millbo01/npn-protocol
+
+jobs:
+  round:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Read the current shared config from the protocol repo default branch
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.PROTOCOL_REPO }}
+          path: protocol-config
+          sparse-checkout: config
+
+      - name: Resolve the pinned protocol tag
+        id: pin
+        run: |
+          tag=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('protocol-config/config/adapters.json','utf8')).protocol_tag ?? ''))")
+          if [ -z "$tag" ]; then echo "config/adapters.json has no protocol_tag" >&2; exit 1; fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the protocol repo at the pinned tag
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ env.PROTOCOL_REPO }}
+          ref: ${{ steps.pin.outputs.tag }}
+          path: protocol
+
+      - name: Record the protocol commit that runs
+        id: code
+        run: echo "commit=$(git -C protocol rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out this node's main branch
+        uses: actions/checkout@v5
+        with:
+          path: node
+
+      - name: Check out this node's data branch
+        uses: actions/checkout@v5
+        with:
+          ref: data
+          path: data
+
+      - name: Etag probe
+        if: ${{ inputs.probe }}
+        env:
+          CH_API_KEY: ${{ secrets.CH_API_KEY }}
+        run: node protocol/adapters/companies-house/probe.js --config-dir protocol-config/config
+
+      - name: Run the round
+        id: round
+        if: ${{ !inputs.probe }}
+        env:
+          CH_API_KEY: ${{ secrets.CH_API_KEY }}
+          NODE_ID: ${{ vars.NODE_ID || github.event.repository.name }}
+          PROTOCOL_TAG: ${{ steps.pin.outputs.tag }}
+          PROTOCOL_COMMIT: ${{ steps.code.outputs.commit }}
+        run: >
+          node protocol/adapters/companies-house/run.js
+          --config-dir protocol-config/config
+          --data-dir data
+          --log-dir node/log
+          --node-id "$NODE_ID"
+          --protocol-tag "$PROTOCOL_TAG"
+          --protocol-commit "$PROTOCOL_COMMIT"
+
+      - name: Commit changed data to the data branch
+        if: ${{ !inputs.probe }}
+        working-directory: data
+        env:
+          ROUND_ID: ${{ steps.round.outputs.round_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No data changes"
+          else
+            git commit -q -m "Data from round $ROUND_ID"
+            git push -q origin HEAD:data
+          fi
+
+      - name: Commit the round record to main
+        if: ${{ !inputs.probe }}
+        working-directory: node
+        env:
+          ROUND_ID: ${{ steps.round.outputs.round_id }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add log
+          git commit -q -m "Round $ROUND_ID"
+          git push -q origin HEAD:main
+
+      - name: Fail the run if the round recorded errors
+        if: ${{ !inputs.probe && steps.round.outputs.errors != '0' }}
+        env:
+          ERRORS: ${{ steps.round.outputs.errors }}
+        run: |
+          echo "The round recorded $ERRORS errors. They are listed in the round record." >&2
+          exit 1

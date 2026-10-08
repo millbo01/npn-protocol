@@ -1,0 +1,2 @@
+# Canonical data is hashed byte for byte. Never convert it.
+* -text

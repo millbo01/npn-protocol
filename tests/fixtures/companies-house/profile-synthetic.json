@@ -1,0 +1,61 @@
+{
+  "company_number": "ZZ000001",
+  "company_name": "EXAMPLE WIDGETS LIMITED",
+  "company_status": "active",
+  "type": "ltd",
+  "jurisdiction": "england-wales",
+  "date_of_creation": "2001-02-03",
+  "sic_codes": ["62012"],
+  "previous_company_names": [
+    { "name": "EXAMPLE GADGETS LIMITED", "effective_from": "2001-02-03", "ceased_on": "2010-04-05" }
+  ],
+  "registered_office_address": {
+    "premises": "Fictional House 7",
+    "address_line_1": "1 Invented Lane",
+    "address_line_2": "Unreal Quarter",
+    "locality": "Exampletown",
+    "region": "Testshire",
+    "postal_code": "ZX1 2YW",
+    "country": "England"
+  },
+  "registered_office_is_in_dispute": false,
+  "undeliverable_registered_office_address": false,
+  "accounts": {
+    "accounting_reference_date": { "day": "31", "month": "03" },
+    "last_accounts": {
+      "made_up_to": "2025-03-31",
+      "period_start_on": "2024-04-01",
+      "period_end_on": "2025-03-31",
+      "type": "micro-entity"
+    },
+    "next_accounts": {
+      "due_on": "2026-12-31",
+      "overdue": false,
+      "period_start_on": "2025-04-01",
+      "period_end_on": "2026-03-31"
+    },
+    "next_due": "2026-12-31",
+    "next_made_up_to": "2026-03-31",
+    "overdue": false
+  },
+  "confirmation_statement": {
+    "last_made_up_to": "2026-02-03",
+    "next_due": "2027-02-17",
+    "next_made_up_to": "2027-02-03",
+    "overdue": false
+  },
+  "has_charges": false,
+  "has_insolvency_history": false,
+  "can_file": true,
+  "etag": "0123456789abcdef0123456789abcdef01234567",
+  "links": {
+    "self": "/company/ZZ000001",
+    "filing_history": "/company/ZZ000001/filing-history",
+    "officers": "/company/ZZ000001/officers"
+  },
+  "service_address": {
+    "address_line_1": "2 Pretend Road",
+    "locality": "Nowhere",
+    "postal_code": "ZX9 9ZZ"
+  }
+}

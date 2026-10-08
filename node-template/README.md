@@ -1,5 +1,52 @@
 # node-template
 
-Everything a new node needs, assembled in Phase 3 from the Phase 1 and 2 work: the scheduled pull, signing and consensus workflow (GitHub Actions and a GitLab CI equivalent), plus setup instructions.
+What a new node repo needs. Phase 1 version: one source (Companies House company profiles), unsigned round records. Phase 2 adds signing; Phase 3 completes the template, adds setup for GitLab, and adds nodes 2 to 4.
 
-Target setup for a new node: create a repo from this template, add two secrets (the source API key and the node signing key), and add the node's public key to a signer list.
+- `main/`: the contents of the node repo's `main` branch: the node workflow, `log/`, a README and `.gitattributes`.
+- `data/`: the contents of the first commit on the node repo's orphan `data` branch.
+
+The node never copies adapter code. Each run, the workflow reads `config/` from this protocol repo's default branch, checks this repo out at the pinned `protocol_tag`, and runs that code (DESIGN.md section 6).
+
+## Setting up a node (GitHub)
+
+Replace `OWNER` and `npn-node-N` throughout. Run from a folder outside any other git repo.
+
+1. Create the repo and push `main`:
+
+   ```bash
+   gh repo create OWNER/npn-node-N --public --description "NPN node N"
+   git clone https://github.com/OWNER/npn-node-N.git && cd npn-node-N
+   cp -r /path/to/npn-protocol/node-template/main/. .
+   git add -A && git commit -m "Node from template" && git push origin HEAD:main
+   ```
+
+2. Create the orphan `data` branch:
+
+   ```bash
+   git switch --orphan data
+   cp -r /path/to/npn-protocol/node-template/data/. .
+   git add -A && git commit -m "Data branch" && git push origin data
+   git switch main
+   ```
+
+3. Protect `main` against force-push and deletion (a repository ruleset):
+
+   ```bash
+   gh api repos/OWNER/npn-node-N/rulesets --method POST --input - <<'EOF'
+   {"name": "protect-main-log", "target": "branch", "enforcement": "active",
+    "conditions": {"ref_name": {"include": ["refs/heads/main"], "exclude": []}},
+    "rules": [{"type": "non_fast_forward"}, {"type": "deletion"}]}
+   EOF
+   ```
+
+4. Add the Companies House API key as a secret. The command prompts for the value, so it never appears in your shell history:
+
+   ```bash
+   gh secret set CH_API_KEY --repo OWNER/npn-node-N
+   ```
+
+5. Optional: set a node id other than the repo name with a repository variable `NODE_ID`.
+
+6. Run once by hand: Actions tab, `npn-node`, "Run workflow". Tick "probe" to check etag behaviour without writing anything.
+
+Each node needs its own Companies House API key: the 600 requests per 5 minutes limit is per key.

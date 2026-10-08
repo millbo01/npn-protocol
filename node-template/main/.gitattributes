@@ -1,0 +1,5 @@
+# Same bytes on every machine: hashes depend on it.
+* text=auto eol=lf
+
+# Round records are hashed byte for byte. Never convert them.
+log/** -text
