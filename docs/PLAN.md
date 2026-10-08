@@ -36,7 +36,7 @@ Principles. Claude Code must ask, not decide.
 | Phase | What | Status |
 |---|---|---|
 | 0 | Repo setup and design review | Done. 0c review settled in Claude chat (DESIGN.md v2.3) |
-| 1 | Node 1, one source, deterministic pulls (company profiles) | Next |
+| 1 | Node 1, one source, deterministic pulls (company profiles) | Built and running daily on npn-node-1 (protocol v0.1.0). Open: etag change-on-change not yet observed; three points for James (see Phase 1 status) |
 | 2 | Signing and manifest logs | Not started |
 | 3 | Four nodes, witnessing and consensus | Not started |
 | 4 | Officers, PSCs and the relational layer | Not started. Legal view before individual records go public |
@@ -157,6 +157,25 @@ Do not build signing or consensus yet. Update docs/PLAN.md and add decision log 
 - The field allowlist, transform list and licence terms are documented.
 
 **Model:** Sonnet.
+
+**Status, 8 October 2026 (Phase 1)**
+
+- [x] Step 0: DESIGN.md v2.3 checked against the 0c review. All 11 items resolved; nothing blocks Phase 1. CLAUDE.md still says to keep raw responses alongside transformed output, which DESIGN.md section 3 now forbids; DESIGN.md followed
+- [x] Watchlist version 1: five-company proving set approved by James (D1 partial; full list still open)
+- [x] `lib/canonicalise.js` (RFC 8785, stricter on large integers) and `lib/hash.js` (SHA-256 through WebCrypto), browser-compatible
+- [x] `adapters/companies-house`, version 1: company profile allowlist, six ordered transforms, raw and canonical hashes, raw bytes discarded, round record every run. Documented in its README
+- [x] 34 tests in CI, synthetic fixtures only, all passing
+- [x] `config/adapters.json` pins `companies-house` 1 at tag `v0.1.0`; repo tagged `v0.1.0`
+- [x] `node-template/` (minimal): daily workflow at 06:17 UTC, reads config from this repo's default branch, runs the pinned tag, orphan `data` branch, round records on `main`, etag probe mode
+- [x] `npn-node-1` created on GitHub: `main` from the template, orphan `data` branch, ruleset blocking force-push and deletion on `main` (force-push tested and rejected), `CH_API_KEY` secret set by James
+- [x] Live etag probe: every profile has an `etag` body field (40 hex characters), identical on repeated fetches; no HTTP `ETag` header
+- [x] Two rounds on unchanged data: identical hashes, no new commit on `data`, one round record each on `main`
+- [x] No raw response and no full registered office address in any repo (checked on the live data branch; the protocol repo holds synthetic fixtures only)
+- [x] Companies House licence and attribution terms recorded in DESIGN.md section 17
+- [ ] Observe an etag change alongside a canonical hash change in the daily round records, to confirm the etag changes when the data does
+- [ ] James decides: `has_super_secure_pscs` (new field, dropped and reported each run): exclude with a reason, or allowlist
+- [ ] James notes: the first round's push to `main` was rejected as a force-push although it was a fast-forward; not reproduced since. Its data commit on `data` has no matching round record on `main`
+- [ ] James decides: CLAUDE.md wording on raw responses, to match DESIGN.md section 3
 
 ---
 
