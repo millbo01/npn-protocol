@@ -17,6 +17,7 @@ NPN (N-ought Provenance Network), git-native build. Independent nodes pull the s
 
 - **No inference, anywhere.** No scores, rankings, risk colours, prominence weighting, derived or inferred connections, or "significance" labels. Store and display only what a source declared and what nodes observed.
 - **No entity resolution beyond identifiers the source itself provides.** No fuzzy name matching, ever.
+- **Personal data, per `docs/DESIGN.md` section 8.** Only allowlisted fields about individuals are ever processed. Never publish addresses, dates of birth or Companies House personal codes. Never commit an individual's name to any git repo: current names are served only from the name store, and superseded names exist only as hashes. Never publish or archive raw responses of person records.
 - **Every transform is published.** Canonicalisation and schema mapping must be deterministic, documented in this repo, versioned, and keep the raw response alongside the transformed output.
 - **Never commit secrets.** Private keys and API keys live only in CI secrets or on the operator's machine. Check the diff before every commit.
 - **One consensus library.** Nodes and the front end use the same shared library for canonicalisation, hashing, signature checks and consensus. Never duplicate that logic.

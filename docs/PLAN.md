@@ -1,5 +1,7 @@
 # NPN git-native build plan
 
+Version 2.1, 8 October 2026. Revised after the Phase 0 design review; D8 decided.
+
 ## How to use this plan
 
 - Work one phase at a time. Each phase has: what you do first, the prompt to paste into Claude Code, the checks that say it is done, and a suggested model.
@@ -11,25 +13,26 @@
 
 Principles. Claude Code must ask, not decide.
 
-| Id | Decision | Default if you are unsure |
+| Id | Decision | Status |
 |---|---|---|
-| D1 | First watchlist: which institutions | 20 to 50 Companies House companies in one sector you know |
-| D2 | Consensus threshold | Keep 75% |
-| D3 | Who qualifies for the genesis signer list, and how that is decided | Genesis-curated, forkable, criteria published |
-| D4 | Open source from day one (drops the White Paper's staged release) | Yes |
-| D5 | No VDS fees or revenue (drops revenue split and treasury) | Yes |
-| D6 | Relational schema base | FollowTheMoney |
-| D7 | Licences for code and for published data | Code: MIT or Apache 2.0. Data: follow each source's licence |
+| D1 | First watchlist: which companies | Open. Default: 20 to 50 Companies House companies in one sector you know |
+| D2 | Consensus threshold | **Decided:** 75%, rounded up, minimum 4 nodes |
+| D3 | Who qualifies for the genesis signer list, and how that is decided | Open. Default: genesis-curated, forkable, criteria published |
+| D4 | Open source from day one | **Decided:** yes |
+| D5 | No VDS fees or revenue | Open. Default: yes |
+| D6 | Relational schema base | Open. Default: FollowTheMoney |
+| D7 | Licences | **Decided:** Apache 2.0 for code, CC0 for network-generated records, source data under its own licence |
+| D8 | Personal data position | **Decided:** full history, allowlist at ingestion, superseded names as hashes only, withdrawal only on a legal order (DESIGN.md section 8) |
 
 ## Phase status
 
 | Phase | What | Status |
 |---|---|---|
-| 0 | Repo setup and design review | Scaffold done, CI green. Waiting for James to take the design review to Claude chat |
-| 1 | One node, one source, deterministic pulls | Not started |
-| 2 | Signing | Not started |
-| 3 | Three nodes and consensus | Not started |
-| 4 | Relational layer (FollowTheMoney) | Not started |
+| 0 | Repo setup and design review | Scaffold done; 0b (apply review outcomes) next |
+| 1 | One node, one source, deterministic pulls (company profiles) | Not started |
+| 2 | Signing and manifest logs | Not started |
+| 3 | Four nodes, witnessing and consensus | Not started |
+| 4 | Officers, PSCs and the relational layer | Not started. Legal view before individual records go public |
 | 5 | Genesis front end | Not started |
 | 6 | Anchoring and archival | Not started |
 | 7 | VDS prototype | Not started |
@@ -40,35 +43,9 @@ Principles. Claude Code must ask, not decide.
 
 ## Phase 0. Repo setup and design review
 
-**You do first**
+Scaffold done by Claude Code on 8 October 2026. Its design review was settled in Claude chat and produced DESIGN.md v2 and this PLAN.md v2.
 
-1. Optional but recommended: create a free GitHub organisation for the network (for example `npn-network`), so the protocol repo and node repos sit together and are not under your personal account.
-2. Create a new **public** repository called `npn-protocol`, with a README.
-3. Clone it in the Claude desktop app (Code tab), the same way as IPF-Research.
-4. Copy in the three files from this pack: `CLAUDE.md` at the root, `DESIGN.md` and `PLAN.md` into a `docs` folder.
-5. Open Claude Code in that folder and paste Prompt 0.
-
-**Prompt 0**
-
-```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md in full before doing anything.
-
-Then:
-1. Review docs/DESIGN.md. List anything ambiguous, contradictory or technically unsound, one line each with the reason. Do not change DESIGN.md yet.
-2. Create the folder skeleton from DESIGN.md section 2, with a short README in each folder saying what will live there.
-3. Add a GitHub Actions workflow that runs the test suite on every push. An empty suite that passes is fine for now. Use plain JavaScript ES modules with Node's built-in test runner, no build step.
-4. Commit with the message "Scaffold protocol repo" and push.
-5. Update the Phase 0 status in docs/PLAN.md, then tell me what to check and what your design review found.
-```
-
-**Done when**
-
-- The skeleton is committed and the CI run is green.
-- You have read Claude Code's design review and brought anything substantive back to Claude chat.
-
-**Model:** Opus (it is reviewing the design).
-
-**Status, 8 October 2026**
+**Status, 8 October 2026 (recovered from the Phase 0 version of this file)**
 
 - [x] `DESIGN.md` and `PLAN.md` moved from the repo root into `docs/`
 - [x] Folder skeleton from DESIGN.md section 2, with a README in each folder
@@ -76,21 +53,42 @@ Then:
 - [x] `.github/workflows/test.yml`: Node's built-in test runner on every push, Node 24
 - [x] Committed as "Scaffold protocol repo" and pushed. First CI run green
 - [x] Design review delivered in the session
-- [ ] James takes the design review to Claude chat and settles the substantive points
-- [ ] DESIGN.md updated with the outcome, and the decisions below added to its decision log
+- [x] James takes the design review to Claude chat and settles the substantive points
+- [x] DESIGN.md updated with the outcome (v2.1), and the Phase 0 decisions added to its decision log (done in 0b)
 
-Decisions made in Phase 0, to add to the DESIGN.md decision log (DESIGN.md was left unchanged on instruction):
+### Phase 0b. Apply review outcomes
 
-| Date | Decision | Reason |
-|---|---|---|
-| 2026-10-08 | `.gitattributes` forces LF line endings and marks `tests/fixtures/` as binary | Windows checkouts otherwise convert line endings, so the same file would hash differently on different machines |
-| 2026-10-08 | CI on Node 24 (current LTS), `package.json` declares Node 22 or later | Node 22 is the oldest maintained line with native glob support in `node --test` and WebCrypto Ed25519 |
-| 2026-10-08 | Test files are `tests/**/*.test.js` | Explicit pattern, so the runner does not pick up fixtures or `node-template/` files |
-| 2026-10-08 | `package.json` is `private` and has no licence field | Prevents accidental npm publishing. The licence is decision D7 |
+**You do first**
+
+1. Copy the new `CLAUDE.md` into the repo root, and the new `DESIGN.md` and `PLAN.md` into `docs/`, replacing the current versions. Claude Code's edits to the old versions are in git history and the prompt recovers them.
+2. Paste Prompt 0b.
+
+**Prompt 0b**
+
+```
+Read the new CLAUDE.md, docs/DESIGN.md and docs/PLAN.md I have just copied in. They replace the earlier versions, including the ones you edited in Phase 0; your versions are in git history.
+
+1. From git history, recover your Phase 0 checklist and status from the previous docs/PLAN.md and merge them into the Phase 0 section of the new PLAN.md. Move any decisions you recorded there into the decision log in docs/DESIGN.md, dated 2026-10-08, unless the new decision log already covers them.
+2. Check the new DESIGN.md against your Phase 0 design review. For each of your review items, state in one line whether it is resolved and in which section. List anything still unresolved or newly introduced by the changes. Do not edit DESIGN.md beyond step 1.
+3. Add LICENSE with the Apache License 2.0. Ask me what name to use as copyright holder.
+4. Add DATA-LICENCE.md stating: records generated by the network (manifests, checkpoints, consensus states, indexes) are dedicated to the public domain under CC0 1.0; source data remains under its source's licence, recorded per source in docs/DESIGN.md.
+5. Create config/ with watchlist.json containing a version field and an empty list, and add it to the layout test.
+6. Commit with the message "Apply Phase 0 review outcomes" and push.
+7. Update the Phase 0 status in docs/PLAN.md, then tell me what to check and paste your step 2 results in full.
+```
+
+**Done when**
+
+- LICENSE and DATA-LICENCE.md exist, CI is green.
+- You have brought Claude Code's step 2 results back to Claude chat if anything is unresolved.
+
+**Model:** Opus (it is checking design consistency).
 
 ---
 
 ## Phase 1. One node, one source, deterministic pulls
+
+Scope: Companies House **company profiles only**. Profiles are single records with their own etag and hold no individuals' personal data. Officers and PSCs come in Phase 4.
 
 **You do first**
 
@@ -100,34 +98,34 @@ Decisions made in Phase 0, to add to the DESIGN.md decision log (DESIGN.md was l
 **Prompt 1**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 1.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 1. Scope is Companies House company profiles only.
 
 Build Phase 1 inside this repo. It moves into the node template in Phase 3.
 
-1. Ask me for the watchlist (decision D1) and save it as config/watchlist.json. Offer to help me choose if I have not decided.
-2. Build a Companies House source adapter in adapters/companies-house covering, for each company number: company profile, officers, and persons with significant control.
-3. The adapter must define and document the version key for each record type. Check the live API documentation for a version field such as etag and use it where present. Document the fallback where there is none.
-4. Canonicalisation in lib/: RFC 8785 (JCS). Save raw responses alongside canonical output. Strip nothing except transport metadata, and document every transform with the reason. Transforms apply in a fixed, documented order.
-5. SHA-256 of the canonical bytes.
-6. A scheduled GitHub Actions workflow, daily, that runs the adapter and commits only changed files. Read the API key from a repository secret named CH_API_KEY and walk me through setting it.
+1. Ask me for the watchlist (decision D1) and save it to config/watchlist.json with a version. Offer to help me choose if I have not decided.
+2. Build a Companies House adapter in adapters/companies-house for the company profile resource. Per DESIGN.md section 3: one record per company, keyed by company number; version key = the profile's etag. Confirm from the live API that the etag field exists and behaves as a version marker. If it does not, stop and tell me.
+3. Canonicalisation in lib/ per DESIGN.md section 3: RFC 8785, fixed documented transform order, every transform listed with its reason, fail loudly on integers above 2^53.
+4. Keep the raw response. Compute SHA-256 of the canonical bytes and of the raw bytes.
+5. Write a round record every run (an unsigned precursor of the Phase 2 manifest) listing, per record: record id, version key, canonical hash, raw hash, retrieval time, adapter version, plus the watchlist version.
+6. A scheduled GitHub Actions workflow, daily, that runs the adapter. The round record is committed every run. Raw and canonical files change only when data changes. Read the API key from a repository secret named CH_API_KEY and walk me through setting it.
 7. Stay well inside 600 requests per 5 minutes.
 8. Confirm and record the licence and attribution terms for Companies House data in docs/DESIGN.md.
-9. Tests: identical input bytes give identical hashes; transforms apply in order; a changed field changes the hash.
+9. Tests: identical input bytes give identical hashes; transforms apply in order; a changed field changes the canonical hash; an over-large integer fails loudly.
 
 Do not build signing or consensus yet. Update docs/PLAN.md and the decision log, then tell me what to check.
 ```
 
 **Done when**
 
-- Two runs against unchanged data produce identical hashes and no new commit.
-- Raw responses sit next to canonical output.
-- The transform list and version keys are documented.
+- Two runs against unchanged data produce identical hashes, no change to raw or canonical files, and one new round record each.
+- The version key behaviour is confirmed against the live API.
+- The transform list and licence terms are documented.
 
 **Model:** Sonnet.
 
 ---
 
-## Phase 2. Signing
+## Phase 2. Signing and manifest logs
 
 **You do first**
 
@@ -136,16 +134,16 @@ Nothing. Claude Code will generate the key on your machine and walk you through 
 **Prompt 2**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 2.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 2. DESIGN.md sections 4, 6 and 7 are the specification.
 
 1. Before building anything, confirm that SSHSIG signatures (ssh-keygen -Y sign) can be verified both with stock OpenSSH and in a browser, using WebCrypto Ed25519 or a small, maintained library. If browser verification is not practical, propose the alternative with trade-offs and stop for my decision.
-2. Round manifest per run, per DESIGN.md section 2 step 3: per-record entries (source id, record id, version key, canonical hash, retrieval time, adapter version), plus protocol version, node id, signer list version and the hash of the previous manifest.
-3. Sign each manifest with Ed25519, namespace "npn-manifest".
-4. Configure git SSH commit signing in the workflow with the same key.
+2. Turn the round record into the signed round manifest in DESIGN.md section 4: sequence number, previous manifest hash, protocol version, node id, signer list version, watchlist version, per-record entries, and an empty peer checkpoints list for now.
+3. Manifest log: after each append, compute the RFC 6962 Merkle root over all manifest hashes in sequence order and publish a signed checkpoint (node id, tree size, root hash). Evaluate the C2SP checkpoint format and record the decision.
+4. Sign manifests and checkpoints with Ed25519, using a namespace per object type. Configure git SSH commit signing in the workflow with the same key.
 5. Generate the key on my machine with ssh-keygen. Never print, log or commit the private key. Store it as a repository secret named NODE_SIGNING_KEY, using the gh CLI if available, otherwise walk me through the GitHub web interface.
-6. Create signers/genesis.allowed_signers and signers/genesis.json with the fields in DESIGN.md section 4. Mark this node independence: none.
-7. A verify command in lib/: given a manifest and a signer list, report valid or invalid and why.
-8. Tests: a valid manifest verifies; a manifest with one changed byte fails; a manifest signed by an unlisted key fails.
+6. Create signers/genesis.json (canonical, fields per DESIGN.md section 6) and a script that generates signers/genesis.allowed_signers from it, with a test that fails if they disagree. Signer list version = SHA-256 of the RFC 8785 form of genesis.json. Mark this node independence: none.
+7. Verify commands in lib/: verify a manifest or checkpoint against a signer list; verify that a later checkpoint is consistent with an earlier one.
+8. Tests: a valid manifest verifies; one changed byte fails; an unlisted key fails; a rewritten earlier manifest makes the consistency check fail.
 
 Update docs/PLAN.md and the decision log, then tell me what to check, including the exact ssh-keygen command I can run to verify a manifest myself.
 ```
@@ -153,46 +151,51 @@ Update docs/PLAN.md and the decision log, then tell me what to check, including 
 **Done when**
 
 - `ssh-keygen -Y verify` with the allowed_signers file validates a real manifest.
-- A tampered manifest fails.
+- A tampered manifest fails, and a rewritten history fails the consistency check.
 - No private key appears anywhere in the repo or CI logs.
 
 **Model:** Opus.
 
 ---
 
-## Phase 3. Three nodes and consensus
+## Phase 3. Four nodes, witnessing and consensus
+
+Four nodes because D2 sets a minimum of 4: with q = 3, one silent or one bad node is tolerated.
 
 **You do first**
 
-1. Have a free GitLab account ready. Claude Code will walk you through creating two more node repos from the template: one on GitHub (`npn-node-test-2`) and one on GitLab (`npn-node-test-3`). GitLab tests portability and the White Paper's automation-platform diversity rule.
-2. Register two more Companies House API applications so each node has its own key.
+1. Have a free GitLab account ready.
+2. Register three more Companies House API applications, so each of the four nodes has its own key.
 
 **Prompt 3**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 3.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 3. DESIGN.md sections 4, 5 and 6 are the specification.
 
-1. Shared library first: consensus derivation per DESIGN.md section 3 (accepted, disputed, unresolved, monotonic, equivocation detection, signer list pinned). Pure functions, no network calls. Unit tests with fixtures for: all nodes agree; one node tampered; one node silent; a node attests two hashes for one key; signer list changed between rounds; nodes saw different version keys.
-2. Merkle root over sorted accepted entries, RFC 6962 style, documented.
-3. Turn the Phase 1 and 2 workflow into node-template/, with setup instructions, so a new node is: create a repo from the template, add two secrets, add the public key to the signer list. Include a GitLab CI equivalent of the GitHub workflow.
-4. Node workflow step: after pulling and signing, fetch the other listed nodes' manifests (repo URLs from signers/genesis.json), verify them, derive consensus, write consensus/state.json (sorted) and consensus/root.txt.
-5. Walk me through creating npn-node-test-2 (GitHub) and npn-node-test-3 (GitLab) from the template. Mark all three nodes independence: none.
-6. A compare script that fetches every listed node's root and reports match or mismatch with detail.
-7. Run a deliberate tamper test: edit one manifest on one node by hand and show that the other nodes flag it.
+1. Shared library first: consensus derivation per DESIGN.md section 5. Fixed N from the signer list, minimum 4, q = ceil(0.75 x N), first-vote counting by sequence order, record equivocation flagged, accepted / disputed / unresolved exactly as defined, provisional versus final from witnessed status. Pure functions, no network calls.
+2. Unit tests with fixtures for: all agree; one node silent (still accepted); one node votes a different hash (still accepted); two nodes disagree with two others (disputed); a node attests two hashes for one key (first vote counts, flagged); a manifest not yet witnessed (provisional); signer list with 3 nodes (refused); outcomes never reverse as manifests arrive.
+3. Witnessing per DESIGN.md section 4: when fetching a peer's log, check consistency with the last checkpoint recorded for it, include its checkpoint in the next manifest's peer checkpoints, and record log equivocation evidence if inconsistent. A manifest is witnessed once q - 1 other nodes cover it.
+4. Consensus state per DESIGN.md section 5: consensus/state.json with final outcomes and the exact inputs, consensus/root.txt as a Merkle root over sorted entries, and the per-record index.
+5. Turn the workflow into node-template/ with setup instructions, so a new node is: create a repo from the template, add two secrets, add the public key to genesis.json. Include a GitLab CI equivalent.
+6. Walk me through creating four node repos from the template: npn-node-1, npn-node-2 and npn-node-3 on GitHub, npn-node-4 on GitLab. All four independence: none. The protocol repo stops running pulls itself once these are live.
+7. A compare tool that fetches every listed node's consensus state and reports, separately, "different inputs" and "different result for the same inputs".
+8. Run three live fault tests and show me the results: edit one signed manifest by hand (signature fails everywhere); force-push a rewritten history on one node (peers record log equivocation evidence); make one node attest a wrong hash (the other three still reach accepted).
 
 Update docs/PLAN.md and the decision log, then tell me what to check.
 ```
 
 **Done when**
 
-- Three nodes, one of them on GitLab, publish identical roots for the same data versions.
-- The tamper test is flagged by the other two nodes.
+- Four nodes, one on GitLab, produce identical consensus roots whenever their inputs match.
+- All three fault tests behave as specified.
 
-**Model:** Opus for the consensus library, Sonnet for the template and node setup.
+**Model:** Opus for the consensus library and witnessing, Sonnet for the template and node setup.
 
 ---
 
-## Phase 4. Relational layer (FollowTheMoney)
+## Phase 4. Officers, PSCs and the relational layer
+
+**Gate:** before any record about an individual is published, take a legal view on lawful basis under UK GDPR and on the Gender Recognition Act point (DESIGN.md section 8). The build and tests can run before that, with publishing switched off.
 
 **You do first**
 
@@ -201,25 +204,34 @@ Confirm D6. Default is FollowTheMoney.
 **Prompt 4**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 4.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 4. DESIGN.md sections 3, 8 and 9 are the specification. Build with publishing of individual records switched off by a config flag. Ask me before switching it on.
 
-1. Fetch the current FollowTheMoney schema definitions from the official followthemoney project. Pin the version you use.
-2. Map accepted Companies House entries to FtM entities: companies to Company, officers to Person plus Directorship, persons with significant control to Person or LegalEntity plus Ownership or the closest declared relationship type.
-3. Use only identifiers Companies House itself provides to link entities across companies. No name matching, no fuzzy resolution.
-4. Where a source category does not map cleanly (for example some PSC nature-of-control values), hold it unmapped, log it, and list it in docs/DESIGN.md. Do not force it into the nearest type.
-5. Output mapped entities alongside raw records. The mapping is deterministic and versioned, and its version is recorded in the output.
-6. Tests: the same input gives byte-identical output; unmappable records are held and logged; no edge exists without a declared source field.
+1. Extend the Companies House adapter to officers and persons with significant control. One record per officer appointment and per PSC, keyed by the source's own identifier. Version key: the item's own etag if present, otherwise the list etag. All pages of one list must carry the same list etag, or retry.
+2. Personal data per DESIGN.md section 8:
+   - Corporate PSCs are published like company data.
+   - For individuals, process only the allowlisted fields. Split each person record into a name part and a record part, canonicalised and hashed separately, with both hashes in the manifest entry.
+   - The record part is stored and published with full history, like company data.
+   - The name part is published only for the current version, from a name store deployed from a CI artifact (GitHub Pages, and the GitLab Pages equivalent), regenerated every run and never committed. Superseded names exist only as hashes.
+   - Raw responses of person records are hashed and never published.
+   - A manual withdrawal command for legal orders only: removes a named content file from the repo's history, appends a published withdrawal record, and leaves the manifest log byte-identical and consistent.
+3. Fetch the current FollowTheMoney schema from the official followthemoney project and pin the version.
+4. Map accepted records to FtM: Company, LegalEntity, Person, Directorship, Ownership. Link entities across companies only by identifiers Companies House provides. No name matching.
+5. Where a source category does not map cleanly (for example some PSC nature-of-control values), hold it unmapped, log it and list it in docs/DESIGN.md. Do not force it into the nearest type.
+6. Mapping output alongside the records, deterministic and versioned, with the mapping version in the output.
+7. Tests: same input gives byte-identical output; unmappable records held and logged; no edge without a declared source field; no field outside the allowlist ever appears in published content; no individual's name appears in any committed file; after a name change, only the new name is served and the old one exists only as a hash; old versions of the record part stay verifiable; a legal-order withdrawal leaves the manifest log consistent for peers.
 
 Update docs/PLAN.md and the decision log, then tell me what to check and list every held-back category for my review.
 ```
 
 **Done when**
 
-- Mapping output is deterministic.
-- Every edge traces to a declared source field.
+- Paging and version keys behave correctly on real lists.
+- No address, date of birth or individual's name appears in any committed file.
+- A simulated name change serves only the new name, with full role history intact.
+- A test legal-order withdrawal leaves the manifest log consistent for peers.
 - You have reviewed the held-back list.
 
-**Model:** Sonnet.
+**Model:** Opus for the personal data layer, Sonnet for the mapping.
 
 ---
 
@@ -234,7 +246,7 @@ Nothing until 5a returns. Then review the prose description before any HTML is w
 ```
 Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 5.
 
-Before writing any HTML, write docs/FRONTEND.md covering each view: institution search and profile, relationship explorer, timeline, comparison. For each view, state what it shows, what it explicitly does not show, how every data point links to its manifest entry, signatures and raw source, and how the ?signers=<url> parameter changes what counts. Base the views on the NPN Technical Specification section 07 front end, minus anything that needs a server. Stop for my review.
+Before writing any HTML, write docs/FRONTEND.md covering each view: institution search and profile, relationship explorer, timeline, comparison. For each view state what it shows, what it explicitly does not show, how every data point links to its manifest entry, signatures and raw source, how provisional, unresolved and disputed are displayed, and how the ?signers=<url> parameter changes what counts. Describe light mode and audit mode per DESIGN.md section 11. Base the views on NPN Technical Specification section 07, minus anything that needs a server. Stop for my review.
 ```
 
 **Prompt 5b** (after you approve FRONTEND.md)
@@ -243,9 +255,9 @@ Before writing any HTML, write docs/FRONTEND.md covering each view: institution 
 Read CLAUDE.md, docs/DESIGN.md, docs/PLAN.md and docs/FRONTEND.md. We are on Phase 5b.
 
 1. Build the front end in site/ as static HTML, CSS and JavaScript, published with GitHub Pages from this repo.
-2. The browser fetches manifests directly from node repos, verifies signatures, and computes consensus with lib/. The front end never trusts a precomputed result.
+2. Light mode by default and audit mode on request, per DESIGN.md section 11, using lib/ for every check. The front end never trusts a precomputed result.
 3. Accept ?signers=<url> for an alternative signer list. Default to signers/genesis.json.
-4. Every data point links to its manifest entry, node signatures and raw source record.
+4. Every data point links to its manifest entry, node signatures and raw source record (subject to DESIGN.md section 8 for individuals).
 5. Every view has shareable URL state.
 6. Design system: background #070810, accent #4a9eff, secondary #1a2a7a, Courier New monospace throughout, the Ø mark in Georgia serif only, #2a3860 for uppercase micro-labels, #7a8faa for readable prose. No em dashes in any text.
 7. No inference, per CLAUDE.md: no ranking, scoring, risk colours or prominence weighting.
@@ -256,8 +268,8 @@ Update docs/PLAN.md and the decision log, then tell me what to check.
 
 **Done when**
 
-- The site shows only data it has verified itself.
-- Pointing ?signers at a list containing the tampered test node shows the affected records as disputed.
+- The site shows only data it has verified itself, with provisional and final clearly distinguished.
+- Pointing ?signers at a list including the wrong-hash test node still shows the record as accepted with that node's dissent visible.
 - Viewing the source shows no ranking or scoring logic.
 
 **You do after:** optionally point `npn.n-ought.com` at the Pages site through Ionos DNS. Claude Code can give you the exact records.
@@ -271,18 +283,18 @@ Update docs/PLAN.md and the decision log, then tell me what to check.
 **Prompt 6**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 6.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 6. DESIGN.md section 12 is the specification.
 
-1. Timestamp each new consensus root with OpenTimestamps in the node workflow. Store the proof next to the root, and add a later job that upgrades pending proofs.
-2. Walk me through connecting this repo to Zenodo's GitHub integration, and add a monthly release workflow that snapshots consensus state so each release gets a DOI.
-3. Write docs/VERIFY.md: how anyone can check a record end to end, from raw source to manifest signature to consensus root to external timestamp, using only standard tools.
+1. Timestamp each new manifest log checkpoint and consensus root with OpenTimestamps in the node workflow. Store proofs next to what they prove, and add a later job that upgrades pending proofs.
+2. Walk me through connecting the protocol repo and node repos to Zenodo's GitHub integration, and add a monthly release workflow that snapshots manifest logs, record data and consensus states. The name store and raw responses of person records are never included, per DESIGN.md section 8.
+3. Write docs/VERIFY.md: how anyone can check a record end to end, from raw source to manifest signature, log consistency, witnessing, consensus root and external timestamp, using only standard tools.
 
 Update docs/PLAN.md and the decision log, then tell me what to check.
 ```
 
 **Done when**
 
-- Every consensus root has a timestamp proof.
+- Every checkpoint and consensus root has a timestamp proof.
 - The first Zenodo release exists with a DOI.
 - You can follow VERIFY.md yourself without help.
 
@@ -299,23 +311,23 @@ Choose the test institution. The White Paper requires node operators to integrat
 **Prompt 7**
 
 ```
-Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 7. DESIGN.md section 7 is the specification.
+Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 7. DESIGN.md section 10 is the specification.
 
-1. A payload schema based on NPN Technical Specification section 03, with the fields it lists, plus the signer list version the payload targets.
+1. A payload schema based on NPN Technical Specification section 03, with the fields it lists, plus the signer list version the payload targets. Personal fields follow DESIGN.md section 8. Propose how individual funders in Category C are recorded by category and band without naming private individuals, and stop for my decision.
 2. A small submission tool that builds, validates and signs a payload with the institution's Ed25519 key and commits it to the institution's own public repo. Create a test institution repo and walk me through it.
-3. A VDS source adapter so nodes pull institution repos like any other source and record first-seen time.
+3. A VDS source adapter so nodes pull institution repos like any other source, witness their history as in DESIGN.md section 4, and record first-seen time.
 4. Node verification: schema, internal consistency, signature, and cross-reference against the public data layer where a field has a public counterpart. Each node signs accept or reject with structured reasons.
-5. The monotonic thresholds from DESIGN.md section 3, with rejection final as soon as acceptance is impossible.
-6. Equivocation detection and the correction chain, per DESIGN.md section 7.
+5. The counting rules from DESIGN.md section 5, with rejection final as soon as acceptance is impossible.
+6. Equivocation detection and the correction chain, per DESIGN.md section 10.
 7. Front end: VDS-sourced data marked as such, the gap between public data and VDS data visible, correction history shown.
-8. Tests for every rule above, including an equivocating institution and a correction that supersedes an accepted entry.
+8. Tests for every rule above, including an equivocating institution, a rewritten institution history, and a correction that supersedes an accepted entry.
 
 Update docs/PLAN.md and the decision log, then tell me what to check.
 ```
 
 **Done when**
 
-- A test submission is accepted by the three test nodes and shows on the front end.
+- A test submission is accepted by the four test nodes and shows on the front end.
 - An equivocating submission is rejected and published.
 - A correction supersedes without deleting the original.
 
@@ -325,11 +337,11 @@ Update docs/PLAN.md and the decision log, then tell me what to check.
 
 ## Phase 8. Sampling (design only for now)
 
-Not needed until the genesis signer list passes about 25 nodes. When it does: fixed sample size per item, 75% threshold within the sample, sample drawn from drand plus item hash plus signer list version (DESIGN.md section 9). Design in Claude chat first, then hand the build to Claude Code.
+Not needed until the genesis signer list passes about 25 nodes. When it does: fixed sample size per item, 75% threshold within the sample, sample drawn from drand plus item hash plus signer list version (DESIGN.md section 13). Design in Claude chat first, then hand the build to Claude Code.
 
 ## Phase 9. Revise the White Paper and Technical Specification
 
-Claude chat, not Claude Code. Update both documents to the git-native architecture, using DESIGN.md section 10 as the change list. Also fix the existing inconsistency: the White Paper says failed submissions are "held", which contradicts the Technical Specification's no-holding-state rule.
+Claude chat, not Claude Code. Update both documents to the git-native architecture, using DESIGN.md section 14 as the change list. Also fix the existing inconsistency: the White Paper says failed submissions are "held", which contradicts the Technical Specification's no-holding-state rule.
 
 ---
 
@@ -337,6 +349,6 @@ Claude chat, not Claude Code. Update both documents to the git-native architectu
 
 | Work | Model |
 |---|---|
-| Design review, signing, consensus library, VDS | Opus |
+| Design checks, signing and logs, consensus and witnessing, personal data layer, VDS | Opus |
 | Adapters, templates, mapping, front end build, anchoring | Sonnet |
 | Release workflows, doc and status updates | Haiku |

@@ -2,6 +2,7 @@
   "name": "npn-protocol",
   "version": "0.0.0",
   "private": true,
+  "license": "Apache-2.0",
   "description": "NPN (N-ought Provenance Network) protocol repo: spec, shared library, source adapters, node template and genesis front end.",
   "type": "module",
   "engines": {
