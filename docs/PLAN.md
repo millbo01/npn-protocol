@@ -1,6 +1,6 @@
 # NPN git-native build plan
 
-Version 2.2, 8 October 2026. Revised after two design reviews; D8 decided.
+Version 2.3, 8 October 2026. Revised after three design reviews; D8 decided.
 
 ## How to use this plan
 
@@ -35,8 +35,8 @@ Principles. Claude Code must ask, not decide.
 
 | Phase | What | Status |
 |---|---|---|
-| 0 | Repo setup and design review | 0, 0b and 0c done, CI green. 0c consistency check found open points, two of them blocking Phase 1; James to settle them in Claude chat |
-| 1 | One node, one source, deterministic pulls (company profiles) | Not started |
+| 0 | Repo setup and design review | Done. 0c review settled in Claude chat (DESIGN.md v2.3) |
+| 1 | Node 1, one source, deterministic pulls (company profiles) | Next |
 | 2 | Signing and manifest logs | Not started |
 | 3 | Four nodes, witnessing and consensus | Not started |
 | 4 | Officers, PSCs and the relational layer | Not started. Legal view before individual records go public |
@@ -100,7 +100,7 @@ Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. Claude chat has written v2.2 of
 - [x] Consistency check of DESIGN.md v2.2 against both reviews delivered
 - [x] `config/adapters.json` (`version` 0, empty `adapters` map) added and checked by the layout test
 - [x] Committed as "Apply second review outcomes" and pushed. CI green
-- [ ] James takes any open points from the consistency check to Claude chat
+- [x] James takes any open points from the consistency check to Claude chat (settled: DESIGN.md v2.3)
 
 **Done when**
 
@@ -112,9 +112,11 @@ Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. Claude chat has written v2.2 of
 
 ---
 
-## Phase 1. One node, one source, deterministic pulls
+## Phase 1. Node 1, one source, deterministic pulls
 
 Scope: Companies House **company profiles only**. Profiles are single records with their own etag. They can still hold personal data (a registered office that is someone's home, a person's name inside a company name), so the company-data rules in DESIGN.md section 8 apply from the start. Officers and PSCs come in Phase 4.
+
+The protocol repo never holds source data (DESIGN.md section 2). Phase 1 therefore builds the code here and runs it from a separate node repo, `npn-node-1`, created from a minimal node template. Phase 3 adds nodes 2 to 4 from the same template.
 
 **You do first**
 
@@ -126,28 +128,33 @@ Scope: Companies House **company profiles only**. Profiles are single records wi
 ```
 Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 1. Scope is Companies House company profiles only.
 
-Build Phase 1 inside this repo. It moves into the node template in Phase 3.
+0. Before building, check DESIGN.md v2.3 against your 0c review items. One line per item: resolved and where, or still open. If anything still blocks Phase 1, stop and tell me.
 
+In this protocol repo (code only, never source data):
 1. Ask me for the watchlist (decision D1) and save it to config/watchlist.json with a version. Offer to help me choose if I have not decided.
-2. Build a Companies House adapter in adapters/companies-house for the company profile resource. Per DESIGN.md section 3: one record per company, keyed by company number; version key = the profile's etag. Confirm from the live API that the etag field exists and behaves as a version marker. If it does not, stop and tell me. Give the adapter a version and pin it in config/adapters.json.
+2. Build a Companies House adapter in adapters/companies-house for the company profile resource. Per DESIGN.md section 3: one record per company, keyed by company number; version key = the profile's etag. Confirm from the live API that the etag field exists and behaves as a version marker. If it does not, stop and tell me. Give the adapter a version.
 3. Field allowlist per DESIGN.md section 8, company data: the registered office address is published only as locality, postcode district and country, with the full address object, exactly as the source provides it, kept as a SHA-256 hash. Company names and previous company names are published in full. List every published field in the adapter's documentation.
 4. Canonicalisation in lib/ per DESIGN.md section 3: RFC 8785, fixed documented transform order, every transform listed with its reason, fail loudly on integers above 2^53.
-5. Keep the raw response. Compute SHA-256 of the canonical bytes and of the raw bytes. Write data files under data/ and round records under log/, so the Phase 3 split into a log repo and a data repo is mechanical.
-6. Write a round record every run (an unsigned precursor of the Phase 2 manifest) listing, per record: record id, version key, adapter version, canonical hash, raw hash, retrieval time, plus the watchlist and adapters config versions.
-7. A scheduled GitHub Actions workflow, daily at a fixed minute, that runs the adapter. The round record is committed every run. Raw and canonical files change only when data changes. Read the API key from a repository secret named CH_API_KEY and walk me through setting it.
-8. Stay well inside 600 requests per 5 minutes.
-9. Confirm and record the licence and attribution terms for Companies House data in docs/DESIGN.md.
-10. Tests: identical input bytes give identical hashes; transforms apply in order; a changed field changes the canonical hash; an over-large integer fails loudly; no full registered office address appears in any published file.
+5. Hashing: SHA-256 of the canonical bytes and of the raw response bytes. Then discard the raw response. Never write it anywhere.
+6. Round record (an unsigned precursor of the Phase 2 manifest) per run, listing per record: record id, version key, adapter version, canonical hash, raw hash, retrieval time, plus the watchlist and adapters config versions and the protocol tag and commit id that ran.
+7. Tests with synthetic fixtures only (invented companies and addresses, never real responses): identical input bytes give identical hashes; transforms apply in order; a changed field changes the canonical hash; an over-large integer fails loudly; no full registered office address appears in any output file.
+8. Add a protocol_tag field to config/adapters.json and pin the adapter version. Tag this repo (for example v0.1.0) once the code is ready, and set protocol_tag to it.
 
-Do not build signing or consensus yet. Update docs/PLAN.md and the decision log, then tell me what to check.
+Node 1:
+9. Build a minimal node-template/ per DESIGN.md sections 2 and 6: a scheduled GitHub Actions workflow, daily at a fixed minute, that reads config from this repo's default branch, checks this repo out at the pinned tag, runs the adapter, commits changed canonical data to an orphan data branch, and commits the round record to log/ on main every run.
+10. Walk me through creating npn-node-1 on GitHub from the template: the repo, the orphan data branch, a CH_API_KEY secret, and branch protection on main that blocks force-push and deletion.
+11. Stay well inside 600 requests per 5 minutes.
+12. Confirm and record the licence and attribution terms for Companies House data in docs/DESIGN.md.
+
+Do not build signing or consensus yet. Update docs/PLAN.md and add decision log rows (append-only), then tell me what to check.
 ```
 
 **Done when**
 
-- Two runs against unchanged data produce identical hashes, no change to raw or canonical files, and one new round record each.
+- Two runs against unchanged data produce identical hashes, no change on the data branch, and one new round record each on main.
+- No raw response and no full registered office address exists in any repo, including the protocol repo's history.
 - The version key behaviour is confirmed against the live API.
 - The field allowlist, transform list and licence terms are documented.
-- No full registered office address appears in any published file.
 
 **Model:** Sonnet.
 
@@ -165,13 +172,13 @@ Nothing. Claude Code will generate the key on your machine and walk you through 
 Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 2. DESIGN.md sections 4, 6 and 7 are the specification.
 
 1. Before building anything, confirm that SSHSIG signatures (ssh-keygen -Y sign) can be verified both with stock OpenSSH and in a browser, using WebCrypto Ed25519 or a small, maintained library. If browser verification is not practical, propose the alternative with trade-offs and stop for my decision.
-2. Turn the round record into the signed round manifest in DESIGN.md section 4: sequence number, previous manifest hash, protocol version, node id, signer list version, watchlist and adapters config versions, per-record entries (including adapter version and first_seq), and an empty peer checkpoints list for now.
-3. Manifest log: after each append, compute the RFC 6962 Merkle root over all manifest hashes in sequence order and publish a signed checkpoint (node id, tree size, root hash). Evaluate the C2SP checkpoint format and record the decision.
+2. Turn the round record into the signed round manifest in DESIGN.md section 4: sequence number, previous manifest hash, protocol version, protocol tag and commit id, node id, signer list version, watchlist and adapters config versions, per-record entries (including adapter version and first_seq), and an empty peer checkpoints list for now.
+3. Manifest log per DESIGN.md section 4: lay the log out in the C2SP tlog-tiles format under log/ on main, and after each append publish a signed checkpoint in the C2SP checkpoint format (node id, tree size, root hash). Decide whether checkpoints are signed as C2SP signed notes or with SSHSIG, and record the decision. lib/ must compute inclusion and consistency proofs from the tiles alone.
 4. Sign manifests and checkpoints with Ed25519, using a namespace per object type. Configure git SSH commit signing in the workflow with the same key.
-5. Generate the key on my machine with ssh-keygen. Never print, log or commit the private key. Store it as a repository secret named NODE_SIGNING_KEY, using the gh CLI if available, otherwise walk me through the GitHub web interface.
+5. Generate the key on my machine with ssh-keygen. Never print, log or commit the private key. Store it as a repository secret named NODE_SIGNING_KEY in npn-node-1, using the gh CLI if available, otherwise walk me through the GitHub web interface.
 6. Create signers/genesis.json (canonical, fields per DESIGN.md section 6, including a retired keys list) and a script that generates signers/genesis.allowed_signers from it, with a test that fails if they disagree. Signer list version per DESIGN.md section 6: SHA-256 of the RFC 8785 form of the sorted node ids and keys only. Mark this node independence: none.
 7. Verify commands in lib/: verify a manifest or checkpoint against a signer list, honouring retired keys and their sequence ranges; verify that a later checkpoint is consistent with an earlier one.
-8. Tests: a valid manifest verifies; one changed byte fails; an unlisted key fails; a rewritten earlier manifest makes the consistency check fail; editing node metadata leaves the signer list version unchanged; a rotated key still verifies manifests from its sequence range.
+8. Tests: a valid manifest verifies; one changed byte fails; an unlisted key fails; a rewritten earlier manifest makes the consistency check fail; an inclusion proof computed from tiles verifies against a checkpoint; editing node metadata leaves the signer list version unchanged; a rotated key still verifies manifests from its sequence range.
 
 Update docs/PLAN.md and the decision log, then tell me what to check, including the exact ssh-keygen command I can run to verify a manifest myself.
 ```
@@ -203,11 +210,11 @@ Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 3. DESIGN.md se
 1. Shared library first: consensus derivation per DESIGN.md section 5. Fixed N from the signer list, minimum 4, q = ceil(0.75 x N), first-vote counting by sequence order, record equivocation flagged, accepted / disputed / unresolved exactly as defined, provisional versus final from witnessed status. Pure functions, no network calls.
 2. Unit tests with fixtures for: all agree; one node silent (still accepted); one node votes a different hash (still accepted); two nodes disagree with two others (disputed); a node attests two hashes for one key (first vote counts, flagged); a manifest not yet witnessed (provisional); signer list with 3 nodes (refused); outcomes never reverse as manifests arrive; an adapter upgrade creates new keys without equivocation; a short-lived version that only two nodes saw stays unresolved; votes from before a metadata-only signer list edit still count.
 3. Witnessing per DESIGN.md section 4: when fetching a peer's log, check consistency with the last checkpoint recorded for it, include its checkpoint in the next manifest's peer checkpoints, and record log equivocation evidence if inconsistent. A manifest is witnessed once q - 1 other nodes cover it.
-4. Consensus state per DESIGN.md section 5: consensus/state.json with final outcomes and the exact inputs, consensus/root.txt as a Merkle root over sorted entries, and the per-record index.
-5. Turn the workflow into node-template/ with setup instructions. Each node is two repos per DESIGN.md section 2: a log repo (manifests, checkpoints, consensus state, index; never rewritten) and a data repo (raw and canonical data). Setting up a node should be: create both repos from the template, add two secrets, add the public key and repo URLs to genesis.json. Include a GitLab CI equivalent.
-6. Walk me through creating four nodes from the template: nodes 1 to 3 on GitHub and node 4 on GitLab, each with its log repo and data repo (for example npn-node-1-log and npn-node-1-data). All four independence: none. The protocol repo stops running pulls itself once these are live.
+4. Consensus state per DESIGN.md section 5: log/consensus/state.json with final outcomes and the exact inputs, log/consensus/root.txt as a Merkle root over sorted entries, and the per-record index.
+5. Complete node-template/ with setup instructions per DESIGN.md section 2: one repo per node, main holding the workflow and log (protected against force-push), an orphan data branch. Setting up a node should be: create the repo from the template, add two secrets, protect main, add the public key and URLs to genesis.json. Include a GitLab CI equivalent, with main as a protected branch.
+6. Walk me through creating nodes 2 and 3 on GitHub (npn-node-2, npn-node-3) and node 4 on GitLab (npn-node-4), and update npn-node-1 to the full template. All four independence: none.
 7. A compare tool that fetches every listed node's consensus state and reports, separately, "different inputs" and "different result for the same inputs".
-8. Run three live fault tests and show me the results: edit one signed manifest by hand (signature fails everywhere); force-push a rewritten history on one node (peers record log equivocation evidence); make one node attest a wrong hash (the other three still reach accepted).
+8. Run three live fault tests and show me the results: edit one signed manifest by hand (signature fails everywhere); rewrite one node's log history, temporarily lifting its branch protection (peers record log equivocation evidence), then restore the protection; make one node attest a wrong hash (the other three still reach accepted).
 
 Update docs/PLAN.md and the decision log, then tell me what to check.
 ```
@@ -227,7 +234,8 @@ Update docs/PLAN.md and the decision log, then tell me what to check.
 
 **You do first**
 
-Confirm D6. Default is FollowTheMoney.
+1. Confirm D6. Default is FollowTheMoney.
+2. Create a free Cloudflare account for the name store host (DESIGN.md section 8). Claude Code will walk you through an API token for CI.
 
 **Prompt 4**
 
@@ -237,16 +245,16 @@ Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 4. DESIGN.md se
 1. Extend the Companies House adapter to officers and persons with significant control. One record per officer appointment and per PSC, keyed by the source's own identifier. Version key: the item's own etag if present; if list items have none, use the item-level endpoint where one exists, checked against the rate limit; otherwise the list etag. All pages of one list must carry the same list etag, or retry. Bump the adapter version in config/adapters.json.
 2. Personal data per DESIGN.md section 8:
    - Corporate PSCs are published like company data.
-   - For individuals, process only the allowlisted fields. The record part (role or nature of control, dates, Companies House identifier) is canonicalised, hashed, voted on, stored in the data repo and published with full history, like company data.
-   - Names never go into the log repo or data repo in any form, including hashes.
-   - Each run, publish a name store per node: current names plus a signed name attestation per individual (node id, source, record id, version key, name hash). Deploy it from a CI artifact (GitHub Pages, and the GitLab Pages equivalent), regenerated every run and never committed. Set artifact retention to 1 day. Serve it with robots exclusion and no-archive headers.
-   - Raw responses of person records are not retained. Record their raw hash only.
-   - A manual withdrawal command for legal orders only: rewrites the node's data repo to remove a named content file, appends a published withdrawal record to the log, and never touches the log repo. Document the limits from DESIGN.md section 8 in the command's help text.
+   - For individuals, process only the allowlisted fields. The record part (role or nature of control, dates, Companies House identifier) is canonicalised, hashed, voted on, stored on the data branch and published with full history, like company data.
+   - Names never go onto a node's main or data branch in any form, including hashes. The only exception is the source's own etag, used as the version key.
+   - Person manifest entries carry no raw hash.
+   - Each run, publish a name store per node: current names plus a signed name attestation per individual (node id, source, record id, version key, name hash). Deploy it from a CI artifact to Cloudflare Pages by direct upload, regenerated every run and never committed. Set artifact retention to 1 day. Serve a root robots.txt that disallows everything and an X-Robots-Tag: noindex, noarchive header on every file, via a _headers file. Confirm both from the live deployment, and evaluate one alternative host for diversity.
+   - A manual withdrawal command for legal orders only: rewrites the node's data branch to remove a named content file, appends a published withdrawal record to the log on main, and never touches main's history. Document the limits from DESIGN.md section 8 in the command's help text.
 3. Fetch the current FollowTheMoney schema from the official followthemoney project and pin the version.
 4. Map accepted records to FtM: Company, LegalEntity, Person, Directorship, Ownership. Link entities across companies only by identifiers Companies House provides. No name matching.
 5. Where a source category does not map cleanly (for example some PSC nature-of-control values), hold it unmapped, log it and list it in docs/DESIGN.md. Do not force it into the nearest type.
 6. Mapping output alongside the records, deterministic and versioned, with the mapping version in the output.
-7. Tests: same input gives byte-identical output; unmappable records held and logged; no edge without a declared source field; no field outside the allowlist ever appears in published content; no individual's name or name hash appears in any committed file; after a name change, the old name and its attestations are gone from the next name store; old versions of the record part stay verifiable; a name is shown only when q listed nodes' attestations agree; a legal-order withdrawal leaves the log repo untouched and consistent for peers.
+7. Tests: same input gives byte-identical output; unmappable records held and logged; no edge without a declared source field; no field outside the allowlist ever appears in published content; no individual's name or name hash appears in any committed file; after a name change, the old name and its attestations are gone from the next name store; old versions of the record part stay verifiable; a name is shown only when q listed nodes' attestations agree; a legal-order withdrawal leaves main untouched and consistent for peers.
 
 Update docs/PLAN.md and the decision log, then tell me what to check and list every held-back category for my review.
 ```
@@ -256,7 +264,8 @@ Update docs/PLAN.md and the decision log, then tell me what to check and list ev
 - Paging and version keys behave correctly on real lists.
 - No address, date of birth, individual's name or name hash appears in any committed file.
 - A simulated name change leaves no trace of the old name anywhere NPN publishes, with full role history intact.
-- A test legal-order withdrawal leaves the log repo untouched and consistent for peers.
+- A test legal-order withdrawal leaves main untouched and consistent for peers.
+- The live name store serves the robots.txt and X-Robots-Tag header.
 - You have reviewed the held-back list.
 
 **Model:** Opus for the personal data layer, Sonnet for the mapping.
@@ -314,7 +323,7 @@ Update docs/PLAN.md and the decision log, then tell me what to check.
 Read CLAUDE.md, docs/DESIGN.md and docs/PLAN.md. We are on Phase 6. DESIGN.md section 12 is the specification.
 
 1. Timestamp each new manifest log checkpoint and consensus root with OpenTimestamps in the node workflow. Store proofs next to what they prove, and add a later job that upgrades pending proofs.
-2. Walk me through connecting the protocol repo and node repos to Zenodo's GitHub integration, and add a monthly release workflow that snapshots manifest logs, record data and consensus states. The name store and raw responses of person records are never included, per DESIGN.md section 8.
+2. Walk me through connecting the protocol repo and node repos to Zenodo's GitHub integration, and add a monthly release workflow on each node that snapshots its main branch (manifest logs, tiles, consensus states) and its data branch as release assets. The name store is never included, per DESIGN.md section 8.
 3. Write docs/VERIFY.md: how anyone can check a record end to end, from raw source to manifest signature, log consistency, witnessing, consensus root and external timestamp, using only standard tools.
 
 Update docs/PLAN.md and the decision log, then tell me what to check.
