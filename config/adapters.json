@@ -1,4 +1,7 @@
 {
-  "version": 0,
-  "adapters": {}
+  "version": 1,
+  "protocol_tag": "v0.1.0",
+  "adapters": {
+    "companies-house": 1
+  }
 }

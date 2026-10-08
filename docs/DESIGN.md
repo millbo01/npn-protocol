@@ -256,6 +256,20 @@ Alternative if the default fails: the institution client pushes the identical si
 - Source licences: confirm and record each source's licence and attribution wording before publishing its data.
 - CORS: browser fetches from raw file hosts and name stores must be checked for each hosting platform (Phase 5).
 
+## 17. Source licences
+
+### Companies House
+
+Confirmed 8 October 2026.
+
+- **Basis:** information on the public register is made available "by virtue of approvals issued by us in accordance with section 47 of the Copyright, Designs and Patents Act 1988" and Schedule 1 of the Database Regulations (SI 1997/3032). Companies House "imposes no rules or requirements on how the information on the public register is used." Source: [Companies House statutory guidance, public task, copyright and Crown copyright](https://www.gov.uk/government/publications/companies-house-accreditation-to-information-fair-traders-scheme/public-task-copyright-and-crown-copyright), updated 9 August 2019.
+- **Not under the Open Government Licence.** The OGL covers Companies House's own Crown copyright material (guidance, website), not the register. Register data on node `data` branches is therefore not covered by the CC0 dedication in `DATA-LICENCE.md`; it stays under the terms above.
+- **Conditions:** users take their own legal advice on third-party copyright (material a company itself filed may carry its copyright); the Crown insignia must not be reproduced; Companies House must be credited where its guidance notes, website, publications or statistical tables are used.
+- **Data protection:** users are responsible for complying with data protection, copyright and other legislation (Companies House service owner, [developer forum](https://forum.companieshouse.gov.uk/t/is-data-provided-under-the-ocs/4513)). Relevant from Phase 4.
+- **Attribution used by NPN:** "Source: Companies House public register", on node READMEs and, from Phase 5, the front end. Not required for register data; given because provenance is the point.
+- **API terms:** 600 requests per 5 minutes per key, `429` above that, and repeated breaches may be blocked without warning ([rate limiting guide](https://developer-specs.company-information.service.gov.uk/guides/rateLimiting)). Keys must not be embedded in code ([developer guidelines](https://developer-specs.company-information.service.gov.uk/guides/developerGuidelines)).
+- Re-check the guidance is current before the front end goes public (Phase 5).
+
 ## Decision log
 
 Append-only. Never edit or delete a row: record a change as a new row and name the rows it supersedes. Rows 1 to 22 cite the Phase 0 review as "review item N"; later rows cite "review 2" (0b) and "review 3" (0c).
@@ -306,3 +320,18 @@ Append-only. Never edit or delete a row: record a change as a new row and name t
 | 42 | 2026-10-08 | Scheduled start times are not guaranteed; gaps are expected and handled by section 5 | Hosted CI delays and skips scheduled jobs (review 3, item 8) | 25 (same-minute pulls) |
 | 43 | 2026-10-08 | VDS counting follows section 5: a payload's declared signer list version is audit only; revisit in Phase 7 | One counting rule everywhere (review 3, item 9) |  |
 | 44 | 2026-10-08 | The decision log is append-only: changes are new rows naming the rows they supersede; rows edited in v2.2 restored to their original text | The log must show how decisions changed (review 3, item 11) |  |
+| 45 | 2026-10-08 | `lib/canonicalise.js` rejects integer-valued numbers at or above 2^53 (not only above), lone surrogates and non-plain objects | After parsing, 2^53 and 2^53 + 1 are the same double, so the only safe rule is to refuse both |  |
+| 46 | 2026-10-08 | Hashes are lowercase hex SHA-256 through WebCrypto | One implementation that runs unchanged in Node and the browser |  |
+| 47 | 2026-10-08 | Record id is `{record type}/{the source's own identifier}`, for example `company-profile/00445790` | One source has several record types (Phase 4 adds officers and PSCs) |  |
+| 48 | 2026-10-08 | The etag is kept out of the canonical record and recorded only as the version key | A new etag with unchanged published content then shows as an unchanged canonical hash |  |
+| 49 | 2026-10-08 | Company profile allowlist and exclusions as in `adapters/companies-house/README.md`; unknown fields dropped and reported by name; an allowlisted field in an unexpected shape fails the record | Allowlist at ingestion (D8); nothing unreviewed is published |  |
+| 50 | 2026-10-08 | Registered office hash = SHA-256 of the RFC 8785 form of the full source address object, taken before any change | The raw bytes of a sub-object cannot be isolated reliably; RFC 8785 changes serialisation only, not values |  |
+| 51 | 2026-10-08 | Postcode district = outward code of a UK postcode pattern; `null` for anything else | A documented, deterministic split with no guessing |  |
+| 52 | 2026-10-08 | Requests at least 1 second apart (at most 300 per 5 minutes); stop the round on `429`; stop on `401` or `403`; retry server errors twice, 10 seconds apart | Half the Companies House limit, and no hammering after a refusal |  |
+| 53 | 2026-10-08 | One round record per run at `log/rounds/{start time}.json`, RFC 8785; per-record errors listed in it; the run commits and then fails if there were errors | Every run is recorded, and failures are visible |  |
+| 54 | 2026-10-08 | Node workflow runs daily at 06:17 UTC, with a manual etag probe mode | Fixed minute off the hour; the probe confirms etag behaviour without writing anything |  |
+| 55 | 2026-10-08 | Watchlist entry format `{source, type, id}`; version 1 is a five-company proving set approved by James | D1 proving set; the full D1 list stays open |  |
+| 56 | 2026-10-08 | Adapter versions are integers; `companies-house` is 1; first protocol tag `v0.1.0` | Simplest values a manifest can record and compare |  |
+| 57 | 2026-10-08 | Node `main` protected by a repository ruleset blocking force-push and deletion | Rulesets work on free public repos and leave normal pushes from the workflow untouched |  |
+| 58 | 2026-10-08 | Companies House attribution: "Source: Companies House public register"; register data is not under OGL or CC0 | Section 17 |  |
+| 59 | 2026-10-08 | Phase 1 code built on a `phase-1` branch and merged to `main` once CI was green | No local Node install; `main` only receives passing code |  |
