@@ -30,12 +30,14 @@ jobs:
         with:
           node-version: 24
 
-      - name: Read the current shared config from the protocol repo default branch
+      - name: Read the current shared config and signer list from the protocol repo default branch
         uses: actions/checkout@v5
         with:
           repository: ${{ env.PROTOCOL_REPO }}
           path: protocol-config
-          sparse-checkout: config
+          sparse-checkout: |
+            config
+            signers
 
       - name: Resolve the pinned protocol tag
         id: pin
@@ -72,6 +74,24 @@ jobs:
           CH_API_KEY: ${{ secrets.CH_API_KEY }}
         run: node protocol/adapters/companies-house/probe.js --config-dir protocol-config/config
 
+      # The key exists only in this runner's temporary directory, readable by this user only,
+      # and is deleted in the last step. It is never printed.
+      - name: Load the node signing key
+        if: ${{ !inputs.probe }}
+        env:
+          NODE_SIGNING_KEY: ${{ secrets.NODE_SIGNING_KEY }}
+        run: |
+          if [ -z "$NODE_SIGNING_KEY" ]; then echo "NODE_SIGNING_KEY secret is not set" >&2; exit 1; fi
+          umask 077
+          printf '%s\n' "$NODE_SIGNING_KEY" > "$RUNNER_TEMP/npn_node_key"
+          for dir in data node; do
+            git -C "$dir" config user.name "github-actions[bot]"
+            git -C "$dir" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git -C "$dir" config gpg.format ssh
+            git -C "$dir" config user.signingkey "$RUNNER_TEMP/npn_node_key"
+            git -C "$dir" config commit.gpgsign true
+          done
+
       - name: Run the round
         id: round
         if: ${{ !inputs.probe }}
@@ -81,46 +101,48 @@ jobs:
           PROTOCOL_TAG: ${{ steps.pin.outputs.tag }}
           PROTOCOL_COMMIT: ${{ steps.code.outputs.commit }}
         run: >
-          node protocol/adapters/companies-house/run.js
+          node protocol/runner/run.js
           --config-dir protocol-config/config
+          --signers protocol-config/signers/genesis.json
           --data-dir data
           --log-dir node/log
           --node-id "$NODE_ID"
           --protocol-tag "$PROTOCOL_TAG"
           --protocol-commit "$PROTOCOL_COMMIT"
+          --key-file "$RUNNER_TEMP/npn_node_key"
 
-      - name: Commit changed data to the data branch
+      - name: Commit changed data to the data branch (signed)
         if: ${{ !inputs.probe }}
         working-directory: data
         env:
-          ROUND_ID: ${{ steps.round.outputs.round_id }}
+          SEQUENCE: ${{ steps.round.outputs.sequence }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No data changes"
           else
-            git commit -q -m "Data from round $ROUND_ID"
+            git commit -q -m "Data from manifest $SEQUENCE"
             git push -q origin HEAD:data
           fi
 
-      - name: Commit the round record to main
+      - name: Commit the manifest, tiles and checkpoint to main (signed)
         if: ${{ !inputs.probe }}
         working-directory: node
         env:
-          ROUND_ID: ${{ steps.round.outputs.round_id }}
+          SEQUENCE: ${{ steps.round.outputs.sequence }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add log
-          git commit -q -m "Round $ROUND_ID"
+          git commit -q -m "Manifest $SEQUENCE"
           git push -q origin HEAD:main
+
+      - name: Remove the signing key
+        if: ${{ always() }}
+        run: rm -f "$RUNNER_TEMP/npn_node_key"
 
       - name: Fail the run if the round recorded errors
         if: ${{ !inputs.probe && steps.round.outputs.errors != '0' }}
         env:
           ERRORS: ${{ steps.round.outputs.errors }}
         run: |
-          echo "The round recorded $ERRORS errors. They are listed in the round record." >&2
+          echo "The round recorded $ERRORS errors. They are listed in the manifest." >&2
           exit 1

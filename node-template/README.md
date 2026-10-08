@@ -1,6 +1,6 @@
 # node-template
 
-What a new node repo needs. Phase 1 version: one source (Companies House company profiles), unsigned round records. Phase 2 adds signing; Phase 3 completes the template, adds setup for GitLab, and adds nodes 2 to 4.
+What a new node repo needs. Phase 2 version: one source (Companies House company profiles), signed manifests in a C2SP tlog-tiles log, signed checkpoints, signed commits. Phase 3 adds witnessing and consensus, completes the template, adds setup for GitLab, and adds nodes 2 to 4.
 
 - `main/`: the contents of the node repo's `main` branch: the node workflow, `log/`, a README and `.gitattributes`.
 - `data/`: the contents of the first commit on the node repo's orphan `data` branch.
@@ -45,8 +45,17 @@ Replace `OWNER` and `npn-node-N` throughout. Run from a folder outside any other
    gh secret set CH_API_KEY --repo OWNER/npn-node-N
    ```
 
-5. Optional: set a node id other than the repo name with a repository variable `NODE_ID`.
+5. Generate the node signing key on the operator's machine and store it as a secret. No passphrase, because CI uses it unattended. Never print, log or commit the private key:
 
-6. Run once by hand: Actions tab, `npn-node`, "Run workflow". Tick "probe" to check etag behaviour without writing anything.
+   ```bash
+   ssh-keygen -q -t ed25519 -N "" -C npn-node-N -f ~/.ssh/npn-node-N_ed25519
+   gh secret set NODE_SIGNING_KEY --repo OWNER/npn-node-N < ~/.ssh/npn-node-N_ed25519
+   ```
+
+   Then add `~/.ssh/npn-node-N_ed25519.pub` and the node's details to `signers/genesis.json` in the protocol repo, run `node runner/generate-allowed-signers.js`, and commit both files. A round refuses to sign with a key that is not the node's listed key.
+
+6. Optional: set a node id other than the repo name with a repository variable `NODE_ID`.
+
+7. Run once by hand: Actions tab, `npn-node`, "Run workflow". Tick "probe" to check etag behaviour without writing anything.
 
 Each node needs its own Companies House API key: the 600 requests per 5 minutes limit is per key.

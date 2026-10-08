@@ -7,7 +7,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createProfileFetcher } from './fetch.js';
-import { watchlistTargets } from './round.js';
+import { watchlistTargets } from './collect.js';
 
 const { values } = parseArgs({ options: { 'config-dir': { type: 'string' } } });
 const apiKey = process.env.CH_API_KEY;

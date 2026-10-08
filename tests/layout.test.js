@@ -14,6 +14,7 @@ const folders = [
   'adapters',
   'mapping',
   'node-template',
+  'runner',
   'signers',
   'site',
   'tests',

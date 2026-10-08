@@ -1,0 +1,3 @@
+# Generated from signers/genesis.json by runner/generate-allowed-signers.js. Do not edit.
+# Retired keys are listed for verifying old signatures; their sequence ranges are in the JSON file.
+npn-node-1 namespaces="npn-manifest,npn-checkpoint,git" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEWjXaOAQIC9alLAvbG0pRkJFxDjfCh++lwmY2uUtEp

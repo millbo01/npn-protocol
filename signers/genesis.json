@@ -1,0 +1,21 @@
+{
+  "list": "genesis",
+  "format_version": 1,
+  "curator": "N-ought (genesis operator)",
+  "nodes": [
+    {
+      "node_id": "npn-node-1",
+      "public_key": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIEWjXaOAQIC9alLAvbG0pRkJFxDjfCh++lwmY2uUtEp",
+      "key_from_seq": 0,
+      "retired_keys": [],
+      "repo_url": "https://github.com/millbo01/npn-node-1",
+      "name_store_url": null,
+      "operator": "N-ought (genesis operator)",
+      "hosting_platform": "GitHub",
+      "ci_platform": "GitHub Actions (GitHub-hosted runner)",
+      "operating_system": "Ubuntu (GitHub-hosted runner image)",
+      "conflict_disclosure": "Test node run by the genesis operator, who also curates this signer list.",
+      "independence": "none"
+    }
+  ]
+}
